@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Raccoon.Backup
+﻿namespace Raccoon.Backup
 {
     public class AppSettings
     {
@@ -10,6 +6,5 @@ namespace Raccoon.Backup
         public string DestinationFolder { get; set; }
         public int MinutePeriod { get; set; }
         public int ExactHour { get; set; }
-        public RunType RunType { get; set; }
     }
 }

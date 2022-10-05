@@ -36,7 +36,7 @@ namespace Raccoon.Backup
                  .StartAutomatically()
                  .EnableServiceRecovery(rc => rc.RestartService(1));
 
-                x.SetDescription("Servico de backup do MHW");
+                x.SetDescription("Servico de backup Raccoon");
                 x.SetDisplayName("Raccoon Backup");
                 x.SetServiceName("Raccoon Backup");
                 x.StartAutomatically();

@@ -5,3 +5,6 @@
 /.vs
 /Raccoon.Backup/bin
 /Raccoon.Backup/obj
+/Forms/obj/Debug/net6.0-windows
+/Raccoon.Backup.Forms/bin/Debug/net6.0-windows
+/Raccoon.Backup.Forms/obj

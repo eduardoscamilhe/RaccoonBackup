@@ -1,8 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Topshelf;
@@ -55,19 +54,16 @@ namespace Raccoon.Backup
             try
             {
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);
-                switch (settings.RunType)
+
+                if (settings.ExactHour != 0 && DateTime.Now.Hour == settings.ExactHour)
                 {
-                    case RunType.PerMinute:
-                        Copy(settings.OriginFolder, settings.DestinationFolder);
-                        break;
-
-                    default:
-                    case RunType.ExactHour:
-                        if (DateTime.Now.Hour == settings.ExactHour)
-                            Copy(settings.OriginFolder, settings.DestinationFolder);
-                        break;
-
+                    Copy(settings.OriginFolder, settings.DestinationFolder);
                 }
+                else if (settings.MinutePeriod != 0)
+                {
+                    Copy(settings.OriginFolder, settings.DestinationFolder);
+                }
+
             }
             finally
             {
@@ -75,54 +71,37 @@ namespace Raccoon.Backup
             }
             await Task.CompletedTask;
         }
-        private void Log() 
-        {
-            
-            if (!File.Exists("./log.txt")) 
-            {
-                File.Create("./log.txt");
-            }
-         
-            var log =  File.OpenRead("./log.txt");
-          
-            string content = string.Empty;
-          
-            using (StreamReader r = new StreamReader("./log.txt"))
-            {
-                content = r.ReadToEnd();
-            }
-
-            using (StreamWriter sw = new StreamWriter("./log.txt"))
-            {
-                sw.Write(content + "\n" + $"Data atualizada : {DateTime.Now.ToString("dd/MM/yyyy")} ");
-            }
-        }
 
         public static void Copy(string sourceDirectory, string targetDirectory)
         {
-            var diSource = new DirectoryInfo(sourceDirectory);
-            var diTarget = new DirectoryInfo(targetDirectory);
+            var listSource = sourceDirectory.Split(';');
+            foreach (var item in listSource)
+            {
+                var diSource = new DirectoryInfo(item);
+                var diTarget = new DirectoryInfo(targetDirectory);
 
-            CopyAll(diSource, diTarget);
+                CopyAll(diSource, diTarget);
+            }
         }
 
-        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        public static void CopyAll(DirectoryInfo source, DirectoryInfo target, bool isSubDir = false)
         {
-            Directory.CreateDirectory(target.FullName);
-
+            var dirName = !isSubDir ? Path.GetDirectoryName(source.FullName).Split("\\").LastOrDefault() : string.Empty;
+            var fulPath = Path.Combine(target.FullName, dirName);
+            Directory.CreateDirectory(fulPath);
             // Copy each file into the new directory.
             foreach (FileInfo fi in source.GetFiles())
             {
                 Console.WriteLine(@"Copying {0}\{1}", target.FullName, fi.Name);
-                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
+                fi.CopyTo(Path.Combine(target.FullName, dirName, fi.Name), true);
             }
 
             // Copy each subdirectory using recursion.
             foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir =
-                    target.CreateSubdirectory(diSourceSubDir.Name);
-                CopyAll(diSourceSubDir, nextTargetSubDir);
+                    target.CreateSubdirectory(Path.Combine(dirName, diSourceSubDir.Name));
+                CopyAll(diSourceSubDir, nextTargetSubDir, true);
             }
         }
     }
